@@ -8,20 +8,31 @@ int GREEN = D1;
 int YELLOW = D2;
 int RED = D4;
 
+// ##### Wifi Connection Setup #### //
+char WifiName[] = "Verizon-SM-G935V";            //SSID
+char Password[] = "password";
+ESP8266WebServer server(80);                     //Server is on Port 80
+
 void setup() {
   // put your setup code here, to run once:
   pinMode(GREEN,OUTPUT);
   pinMode(YELLOW,OUTPUT);
   pinMode(RED,OUTPUT);
   Serial.begin(115200);                          //Starts the Serial Monitor (Input printed on screen)
-}
 
-// ##### Wifi Connection Setup #### //
-char WifiName[] = "Verizon-SM-G935V";
-char Password[] = "password";
-ESP8266WebServer server(80);                     //Server is on Port 80
-WiFi.begin(WifiName,Password);                  //Begin connection to Wifi
-Serial.print("Connection Started");
+  WiFi.begin(WifiName,Password);
+  Serial.println("Connection Started");         //Begin Connection to Wifi
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());               //IP assigned to Server by host wifi
+
+// #### Activate Functions #### //
+  //When "/ " is seen in the URL, do this function
+  server.on("/GREEN", TurnGREEN);
+  server.on("/YELLOW", TurnYELLOW);
+  server.on("/RED", TurnRED);
+  server.on("/TurnOFF", TurnOFF);
+  server.on ("/Cycle", CYCLE);
+}
 
 
 // #### Web Page Setup #### //
@@ -62,8 +73,9 @@ void TurnOFF(){
   Serial.print("TurnedOFF");
 }
 
-/*void CYCLE(){
-//  digitalWrite(GREEN,HIGH);
+void CYCLE(){
+  TurnOFF();
+  digitalWrite(GREEN,HIGH);
   delay(2000); //Wait 2 seconds
   digitalWrite(GREEN,LOW);
   digitalWrite(YELLOW,HIGH);
@@ -71,21 +83,8 @@ void TurnOFF(){
   digitalWrite(YELLOW,LOW);
   digitalWrite(RED,HIGH);
   delay(2000);
-}*/
+}
 
 void loop() {                                // put your main code here, to run repeatedly:
-  WiFiClient client = server.available();   //Check if connected to Wifi
-  if (!client){
-    Serial.print("Webpage Has NOT Been Opened");
-    return;
-  }
-  
-  TurnOFF();
-  TurnGREEN();
-  delay(1000);
-  TurnRED();
-  delay(1000);
-  TurnYELLOW();
-  delay(1000);
-  Serial.print("Looped");
+  server.handleClient();                     //Listen for clients (Connections to the webpage)
 }
