@@ -1,12 +1,10 @@
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiServer.h>
-#include <WiFiUdp.h>
-
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
 #include <WiFiClient.h>
 
-
-int GREEN = D1; //DGREEN
+// #### LED Pin Setup #### //
+int GREEN = D1; 
 int YELLOW = D2;
 int RED = D4;
 
@@ -15,9 +13,23 @@ void setup() {
   pinMode(GREEN,OUTPUT);
   pinMode(YELLOW,OUTPUT);
   pinMode(RED,OUTPUT);
-  Serial.begin(115200);
+  Serial.begin(115200);                          //Starts the Serial Monitor (Input printed on screen)
 }
 
+// ##### Wifi Connection Setup #### //
+char WifiName[] = "Verizon-SM-G935V";
+char Password[] = "password";
+ESP8266WebServer server(80);                     //Server is on Port 80
+WiFi.begin(WifiName,Password);                  //Begin connection to Wifi
+Serial.print("Connection Started");
+
+
+// #### Web Page Setup #### //
+char WebPage[] = "<html><title><Choose Wisely></title><body><form action=\"/GREEN\"><button>Green</button></form><br><form action=\"/YELLOW\"><button>Yellow</button></form><br><form action=\"/RED\"><button>Red</button></form><br><form action=\"/TurnOFF\"><button>Clear</button></form><br><form action=\"/CYCLE\"><button>Cycle</button></form><br></body></html>";
+char AutoRespond[] = "text/html\nRefresh: 1";   //header: content type/conent type\ how often refresh
+
+
+// #### LED Functions Setup #### //
 void TurnGREEN(){
   TurnOFF();
   digitalWrite(GREEN,HIGH);
@@ -61,8 +73,13 @@ void TurnOFF(){
   delay(2000);
 }*/
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop() {                                // put your main code here, to run repeatedly:
+  WiFiClient client = server.available();   //Check if connected to Wifi
+  if (!client){
+    Serial.print("Webpage Has NOT Been Opened");
+    return;
+  }
+  
   TurnOFF();
   TurnGREEN();
   delay(1000);
